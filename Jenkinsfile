@@ -8,16 +8,17 @@ pipeline {
     }
 
     stages {
-        stage("Clone Code") {
+
+        stage("Verify Code") {
             steps {
-                sh "git clone https://github.com/zahid-IT/django-notes-app.git"
+                sh "ls -la"
             }
         }
 
         stage("Build Docker Image") {
             steps {
                 sh """
-                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ./django-notes-app
+                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                 """
             }
         }
