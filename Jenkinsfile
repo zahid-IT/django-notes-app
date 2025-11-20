@@ -34,29 +34,26 @@ pipeline {
             }
         }
 
-        stage("Push to DockerHub") {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                        sh """
-                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
-                        docker push \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
-                        """
-                    }
-                }
-            }
-        }
+        // Skip Docker Push stage
+        // You can remove this stage entirely if you don't need to push to DockerHub
+        // stage("Push to DockerHub") {
+        //     steps {
+        //         sh """
+        //         docker tag ${IMAGE_NAME}:${IMAGE_TAG} \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
+        //         docker push \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
+        //         """
+        //     }
+        // }
 
         stage("Deploy") {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                        sh """
-                        docker stop notes-app || true
-                        docker rm notes-app || true
-                        docker run -d -p 8000:8000 --name notes-app \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
-                        """
-                    }
+                    // You can deploy the container directly on the local system (Jenkins server)
+                    sh """
+                    docker stop notes-app || true
+                    docker rm notes-app || true
+                    docker run -d -p 8000:8000 --name notes-app ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
                 }
             }
         }
