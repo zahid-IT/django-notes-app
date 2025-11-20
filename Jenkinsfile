@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerHubCreds')
+        DOCKERHUB_CREDENTIALS = credentials('github-creds')
         IMAGE_NAME = "notes-app"
         IMAGE_TAG = "latest"
     }
