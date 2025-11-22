@@ -25,7 +25,10 @@ pipeline {
         stage("Docker Login") {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-creds', 
+                        usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', 
+                        passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
                         sh """
                         echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin
                         """
@@ -34,28 +37,33 @@ pipeline {
             }
         }
 
-        // Skip Docker Push stage
-        // You can remove this stage entirely if you don't need to push to DockerHub
-        // stage("Push to DockerHub") {
-        //     steps {
-        //         sh """
-        //         docker tag ${IMAGE_NAME}:${IMAGE_TAG} \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
-        //         docker push \$DOCKERHUB_CREDENTIALS_USR/${IMAGE_NAME}:${IMAGE_TAG}
-        //         """
-        //     }
-        // }
-
         stage("Deploy") {
             steps {
                 script {
-                    // You can deploy the container directly on the local system (Jenkins server)
+                    // Stop & remove old container if exists
                     sh """
                     docker stop notes-app || true
                     docker rm notes-app || true
-                    docker run -d -p 8000:8000 --name notes-app ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+
+                    // Run container with Django settings
+                    sh """
+                    docker run -d -p 8000:8000 --name notes-app \\
+                        -e DJANGO_SETTINGS_MODULE=notesapp.settings.dev \\
+                        ${IMAGE_NAME}:${IMAGE_TAG} \\
+                        bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
                     """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Notes App deployed on port 8000"
+        }
+        failure {
+            echo "❌ Deployment failed"
         }
     }
 }
