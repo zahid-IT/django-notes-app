@@ -1,8 +1,8 @@
 FROM python:3.9
 
-WORKDIR /app/backend
+WORKDIR /app
 
-COPY backend/requirements.txt /app/backend/requirements.txt
+COPY requirements.txt /app/requirements.txt
 
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -12,7 +12,7 @@ RUN apt-get update \
 RUN pip install mysqlclient
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend/ /app/backend/
+COPY . /app
 
 EXPOSE 8000
 
